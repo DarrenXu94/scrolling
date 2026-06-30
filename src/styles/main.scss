@@ -1,0 +1,42 @@
+.container {
+  width: min(100%, 1200px);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+.timeline {
+  height: 96px;
+}
+
+body {
+  margin: 0;
+  // background-image: url("/images/background.jpg");
+  // background-size: cover;
+  // background-position: top;
+  // background-repeat: no-repeat;
+  height: 300vh;
+}
+
+.timeline-container {
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  background: #9a9a9a73;
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .timeline-container {
+    display: block;
+  }
+
+}
