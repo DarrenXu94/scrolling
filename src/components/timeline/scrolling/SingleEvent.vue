@@ -7,6 +7,14 @@
     <div class="event-card">
       <div class="event-title">{{ event.title }}</div>
       <div class="event-date">{{ event.date }}</div>
+      <div class="event-images">
+        <img
+          v-for="pics in event.pics"
+          :src="`/images/events/${pics}`"
+          :alt="event.title"
+          class="event-image"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -45,6 +53,7 @@ export default defineComponent({
 <style scoped lang="scss">
 .single-event {
   position: absolute;
+  z-index: 1;
   transform: translateY(0);
   width: 30%;
   max-width: 260px;
@@ -54,6 +63,14 @@ export default defineComponent({
     top 0.2s ease,
     opacity 0.25s ease;
   pointer-events: none;
+  &:hover {
+    transform: translateY(-5px);
+    z-index: 10;
+    opacity: 1 !important;
+    .event-card {
+      background-color: rgba(33, 33, 33, 1);
+    }
+  }
 }
 
 .single-event--active {
@@ -77,5 +94,32 @@ export default defineComponent({
 .event-date {
   color: #cfcfcf;
   font-size: 0.95rem;
+}
+
+.event-image {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-top: 1rem;
+}
+
+.event-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.event-image {
+  flex: 1 1 30%;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 12px;
 }
 </style>

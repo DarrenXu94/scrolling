@@ -29,7 +29,7 @@ const lastMonthIndex = totalMonths - 1;
 const eventWidthPercent = 30;
 const topSafePadding = 8;
 const bottomSafePadding = 8;
-const safeVerticalRange = 100 - topSafePadding - bottomSafePadding;
+const safeVerticalRange = 100 - topSafePadding - bottomSafePadding - 50;
 
 function parseDateToMonthIndex(date: string) {
   const [day, month, year] = date.split("/").map(Number);
