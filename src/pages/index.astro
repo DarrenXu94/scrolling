@@ -2,6 +2,7 @@
 import "../styles/main.scss";
 import Timeline from "../components/timeline/Timeline.vue";
 import ScrollingPictures from "../components/timeline/ScrollingPictures.vue";
+import FixedBg from "../components/FixedBg.vue";
 ---
 
 <html lang="en">
@@ -14,6 +15,7 @@ import ScrollingPictures from "../components/timeline/ScrollingPictures.vue";
     <title>Astro</title>
   </head>
   <body>
+    <FixedBg client:load />
     <ScrollingPictures client:load />
     <div class="timeline-container">
       <Timeline client:load />
