@@ -61,7 +61,7 @@ export default defineComponent({
   transition:
     left 0.2s ease,
     top 0.2s ease,
-    opacity 0.25s ease;
+    all 0.25s ease;
   pointer-events: none;
   &:hover {
     transform: translateY(-5px);

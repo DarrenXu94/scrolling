@@ -34,22 +34,54 @@ export default defineComponent({
     window.removeEventListener("scroll", this.handleDebouncedScroll);
   },
   methods: {
-    handleScroll(event: Event) {
-      const percentageDownPage =
-        window.scrollY /
-        (document.documentElement.scrollHeight - window.innerHeight);
+    getScrollRange() {
+      return Math.max(
+        document.documentElement.scrollHeight - window.innerHeight,
+        0,
+      );
+    },
+    getScrollPercentage() {
+      const scrollRange = this.getScrollRange();
+      if (scrollRange === 0) return 0;
+
+      return window.scrollY / scrollRange;
+    },
+    getDragRatio(element: HTMLElement) {
+      const parentRect = element.parentElement?.getBoundingClientRect();
+      const childRect = element.getBoundingClientRect();
+
+      if (!parentRect) return 0;
+
+      const currentLeftOffset = childRect.left - parentRect.left;
+      const maxSlidingDistance = parentRect.width - childRect.width;
+
+      if (maxSlidingDistance <= 0) return 0;
+
+      return Math.min(Math.max(currentLeftOffset / maxSlidingDistance, 0), 1);
+    },
+    updateDraggableFramePosition(element: HTMLElement, percentage: number) {
+      const parentRect = element.parentElement?.getBoundingClientRect();
+      if (!parentRect) return;
+
+      const maxLeft = Math.max(parentRect.width - element.offsetWidth, 0);
+      element.style.left = `${percentage * maxLeft}px`;
+    },
+    emitDragPercentage(element: HTMLElement) {
+      this.$emit("drag-percentage", this.getDragRatio(element).toFixed(2));
+    },
+    handleScroll() {
+      const percentageDownPage = this.getScrollPercentage();
 
       this.$emit("drag-percentage", percentageDownPage.toFixed(2));
 
-      // update draggable frame position based on scroll
       const draggableFrame = document.getElementById("draggable-frame");
-      if (draggableFrame) {
-        const parentRect =
-          draggableFrame.parentElement!.getBoundingClientRect();
-        const newLeft =
-          percentageDownPage * (parentRect.width - draggableFrame.offsetWidth);
-        draggableFrame.style.left = `${newLeft}px`;
+      if (draggableFrame instanceof HTMLElement) {
+        this.updateDraggableFramePosition(draggableFrame, percentageDownPage);
       }
+    },
+    movePageOnDrag(element: HTMLElement) {
+      const ratio = this.getDragRatio(element);
+      window.scrollTo(0, ratio * this.getScrollRange());
     },
     initDragElement(element: HTMLElement) {
       const dragMouseDown = (e: MouseEvent) => {
@@ -70,24 +102,7 @@ export default defineComponent({
       element.onmousedown = dragMouseDown;
 
       const emitDragPercentage = () => {
-        const parentRect = element.parentElement!.getBoundingClientRect();
-        const childRect = element.getBoundingClientRect();
-
-        // Calculate how far the child is from the left edge of the parent
-        const currentLeftOffset = childRect.left - parentRect.left;
-
-        // Calculate the maximum distance the child can slide to the right
-        const maxSlidingDistance = parentRect.width - childRect.width;
-
-        // Prevent division by zero if both divs are the exact same width
-        if (maxSlidingDistance === 0) return 0;
-
-        // Return a bound value clamped between 0 and 1
-        const ratio = currentLeftOffset / maxSlidingDistance;
-        const percentage = Math.min(Math.max(ratio, 0), 1).toFixed(2);
-
-        console.log("Drag percentage:", percentage);
-        this.$emit("drag-percentage", percentage);
+        this.emitDragPercentage(element);
       };
 
       // Create a debounced version that waits 300ms after drag stops
@@ -96,13 +111,9 @@ export default defineComponent({
       const elementDrag = (e: MouseEvent) => {
         e = e || window.event;
         e.preventDefault();
-        const parentOffSetLeft = element.parentElement
-          ? element.parentElement.getBoundingClientRect().left
-          : 0;
-
-        const parentOffSetRight = element.parentElement
-          ? element.parentElement.getBoundingClientRect().right
-          : window.innerWidth;
+        const parentRect = element.parentElement?.getBoundingClientRect();
+        const parentOffSetLeft = parentRect?.left ?? 0;
+        const parentOffSetRight = parentRect?.right ?? window.innerWidth;
 
         if (e.clientX < parentOffSetLeft || e.clientX > parentOffSetRight) {
           return; // Prevent dragging outside the parent container
@@ -116,21 +127,22 @@ export default defineComponent({
         // set the element's new position:
         // element.style.top = element.offsetTop - pos2 + "px";
 
-        // limit the range to within the screen
-        if (element.offsetLeft - pos1 < parentOffSetLeft) {
-          element.style.left = parentOffSetLeft + "px";
+        const nextLeft = element.offsetLeft - pos1;
+        const minLeft = parentOffSetLeft;
+        const maxLeft = parentOffSetRight - element.offsetWidth;
+
+        if (nextLeft < minLeft) {
+          element.style.left = `${minLeft}px`;
           return;
         }
-        if (
-          element.offsetLeft - pos1 >
-          parentOffSetRight - element.offsetWidth
-        ) {
-          element.style.left = parentOffSetRight - element.offsetWidth + "px";
+        if (nextLeft > maxLeft) {
+          element.style.left = `${maxLeft}px`;
           return;
         }
 
-        element.style.left = element.offsetLeft - pos1 + "px";
+        element.style.left = `${nextLeft}px`;
 
+        this.movePageOnDrag(element);
         // Call the debounced function during drag
         debouncedEmit();
       };
